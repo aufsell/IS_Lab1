@@ -4,24 +4,25 @@
     <title>Админка - Пользователи</title>
 </head>
 <body>
-<h1>Пользователи</h1>
+<h1>Заявки на повышении уровня привелегии</h1>
 <table>
     <tr>
         <th>ID</th>
         <th>Имя пользователя</th>
-        <th>Роли</th>
+        <th>Заявка создана</th>
         <th>Действия</th>
     </tr>
     <tr th:each="user : ${users}">
         <td th:text="${user.id}"></td>
         <td th:text="${user.username}"></td>
-        <td th:text="${user.roles.contains(T(com.aufsell.Lab1.model.Role).ROLE_ADMIN) ? 'Admin' : 'User'}"></td>
+        <td th:text="${#temporals.format(user.registrationDate, 'yyyy-MM-dd HH:mm')}"></td>
         <td>
-            <form th:action="@{/admin/changerole/{id}(id=${user.id})}" method="post">
-                <button type="submit">Изменить роль</button>
+            <form th:action="@{/admin/approve/{id}(id=${user.id})}" method="post">
+                <button type="submit">Подтвердить</button>
             </form>
         </td>
     </tr>
 </table>
+<a th:href="@{/collections}">Главная страница</a>
 </body>
 </html>

@@ -8,6 +8,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/admin")
@@ -18,12 +19,16 @@ public class AdminController {
     @GetMapping("/users")
     public String listUsers(Model model) {
         List<User> users = userService.findAll();
-        model.addAttribute("users", users);
+        List<User> filteredUsers = users.stream()
+                .filter(user -> !"ROLE_ADMIN".equals(user.getRole().getName()))
+                .toList();
+
+        model.addAttribute("users", filteredUsers);
         return "admin";
     }
-    @PostMapping("/changerole/{id}")
-    public String assignRole(@PathVariable Long id) {
-        userService.changeRole(id);
+    @PostMapping("/approve/{id}")
+    public String giveAdminRole(@PathVariable Long id) {
+        userService.giveAdminRole(id);
         return "redirect:/admin/users";
     }
 }

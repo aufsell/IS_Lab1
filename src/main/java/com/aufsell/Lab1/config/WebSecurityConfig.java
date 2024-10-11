@@ -28,6 +28,7 @@ public class WebSecurityConfig {
                 )
                 .formLogin((form) -> form
                         .loginPage("/login")
+                        .defaultSuccessUrl("/collections", true)
                         .permitAll()
                 )
                 .logout(LogoutConfigurer::permitAll);
@@ -40,7 +41,12 @@ public class WebSecurityConfig {
         auth.jdbcAuthentication()
                 .dataSource(dataSource)
                 .passwordEncoder(NoOpPasswordEncoder.getInstance())
-                .usersByUsernameQuery("select username, password, enabled from usr where username=?")
-                .authoritiesByUsernameQuery("select u.username, ur.roles from usr u inner join user_role ur on u.id=ur.user_id where u.username=?");
+                .usersByUsernameQuery("SELECT username, password, enabled FROM users WHERE username=?")
+                .authoritiesByUsernameQuery(
+                        "SELECT u.username, r.name AS role_name " +
+                                "FROM users u " +
+                                "JOIN roles r ON u.role_id = r.id " +
+                                "WHERE u.username=?"
+                );
     }
 }

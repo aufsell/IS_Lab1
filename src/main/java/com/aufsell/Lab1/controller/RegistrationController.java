@@ -2,6 +2,7 @@ package com.aufsell.Lab1.controller;
 
 import com.aufsell.Lab1.model.Role;
 import com.aufsell.Lab1.model.User;
+import com.aufsell.Lab1.repository.RoleRepository;
 import com.aufsell.Lab1.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -9,13 +10,15 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 
-import java.util.Collections;
-import java.util.HashSet;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Controller
 public class RegistrationController {
     @Autowired
     private UserRepository userRepository;
+    @Autowired
+    private RoleRepository roleRepository;
 
     @GetMapping("/registration")
     public String registration() {
@@ -29,14 +32,17 @@ public class RegistrationController {
             model.addAttribute("message", "User exists");
             return "registration";
         }
+
+        Role role;
         if (userRepository.count() == 0) {
-            user.setRoles(new HashSet<>(Collections.singleton(Role.ROLE_ADMIN)));
+            role = roleRepository.findByName("ROLE_ADMIN");
         } else {
-            user.setRoles(new HashSet<>(Collections.singleton(Role.ROLE_USER)));
+            role = roleRepository.findByName("ROLE_USER");
         }
+        user.setRole(role);
         user.setEnabled(true);
+        user.setRegistrationDate(LocalDateTime.now());
         userRepository.save(user);
         return "redirect:/login";
-
     }
 }
