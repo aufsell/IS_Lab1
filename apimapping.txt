@@ -1,0 +1,30 @@
+GET /api/vehicles
+GET /api/vehicles/{id}
+POST /api/vehicles
+PUT /api/vehicles/{id}
+DELETE /api/vehicles/{id}
+
+GET /api/vehicles/coordinates
+GET /api/vehicles/coordinates/{id}
+POST /api/vehicles/coordinates
+
+GET api/vehicles/fueltypes
+GET api/vehicles/vehicletype
+
+Группировать объекты по значению поля enginePower:
+GET /api/vehicles/group-by-engine-power
+Вернуть количество объектов с fuelConsumption меньше заданного значения:
+GET /api/vehicles/count-by-fuel-consumption?value={value}
+Вернуть массив объектов по части имени:
+GET /api/vehicles/search?nameSubstring={substring}
+Найти все транспортные средства заданного типа:
+GET /api/vehicles/type?vehicleType
+Добавить указанное число колёс к транспортному средству по ID:
+PATCH /api/vehicles/{id}/add-wheels?count={number}
+
+GET /api/admin/registration-requests
+POST /api/admin/registration-requests/{requestId}/approve
+
+
+ПОФИКСИТЬ:
+ошибки при регистрации юзера

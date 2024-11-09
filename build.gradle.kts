@@ -28,6 +28,19 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
+	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
+	implementation ("org.glassfish:jakarta.el:4.0.2")
+	implementation ("org.springframework.boot:spring-boot-starter-validation")
+	implementation ("org.springframework.boot:spring-boot-starter-websocket")
+	implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+	implementation("jakarta.servlet:jakarta.servlet-api:6.1.0")
+	implementation("com.fasterxml.jackson.module:jackson-module-kotlin:2.15.0")
+	implementation("com.fasterxml.jackson.core:jackson-databind:2.15.0")
+	implementation("com.fasterxml.jackson.core:jackson-annotations:2.15.0")
+	implementation("io.jsonwebtoken:jjwt-api:0.11.5")
+	implementation("io.jsonwebtoken:jjwt-impl:0.11.5")
+	implementation("io.jsonwebtoken:jjwt-jackson:0.11.5")
 }
 
 tasks.withType<Test> {

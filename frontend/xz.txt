@@ -1,0 +1,19 @@
+[Interface]
+PrivateKey = kATCPQN9tQvy3ow1s3wzhXfOB9Gm6zWC+UJDGmURQlw=
+Address = 10.66.66.10/32,fd42:42:42::10/128
+DNS = 1.1.1.1,1.0.0.1
+Jc = 8
+Jmin = 50
+Jmax = 1000
+S1 = 119
+S2 = 33
+H1 = 264854105
+H2 = 23173429
+H3 = 434132398
+H4 = 563986837
+
+[Peer]
+PublicKey = Kfo23iGtJilvOtWbIvullc1/QPKFGFsVAvFhKyf9O0w=
+PresharedKey = Y3q/NgGHogbBNsU2t95wVJyXEgDlLDdrRX3lskHA7B0=
+Endpoint = 5.42.73.110:57770
+AllowedIPs = 0.0.0.0/0,::/0
