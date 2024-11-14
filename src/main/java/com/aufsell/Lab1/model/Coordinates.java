@@ -18,4 +18,9 @@ public class Coordinates {
 
     @Column (nullable = false)
     private Double y;
+
+    public Coordinates(int i, Double i1) {
+        this.x = i;
+        this.y = i1;
+    }
 }

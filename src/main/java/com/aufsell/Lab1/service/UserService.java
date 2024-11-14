@@ -35,8 +35,6 @@ public class UserService {
      */
     public User create(User user) {
         if (userRepository.existsByUsername(user.getUsername())) {
-            // Заменить на свои исключения
-            //TODO
             throw new ResourceNotFoundException("Пользователь с таким именем уже существует");
         }
         return save(user);
@@ -75,17 +73,9 @@ public class UserService {
         return getByUsername(username);
     }
 
-
-    /**
-     * Выдача прав администратора текущему пользователю
-     * <p>
-     * Нужен для демонстрации
-     */
-    @Deprecated
-    public void getAdmin() {
-        var user = getCurrentUser();
-        user.setRole(Role.ROLE_ADMIN);
-        save(user);
+    public boolean isPasswordTaken(String password) {
+        // Проверка пароля в базе данных
+        return userRepository.existsByPassword(password);
     }
 
     public void grantAdmin(Long userId) {

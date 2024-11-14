@@ -2,13 +2,14 @@ package com.aufsell.Lab1.service;
 
 import com.aufsell.Lab1.dto.*;
 import com.aufsell.Lab1.exception.ResourceNotFoundException;
-import com.aufsell.Lab1.model.Coordinates;
-import com.aufsell.Lab1.model.FuelType;
-import com.aufsell.Lab1.model.Vehicle;
-import com.aufsell.Lab1.model.VehicleType;
+import com.aufsell.Lab1.model.*;
 import com.aufsell.Lab1.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -31,6 +32,8 @@ public class VehicleService {
     private UserRepository userRepository;
 
     private final SimpMessagingTemplate template;
+    @Autowired
+    private AuditLogService auditLogService;
 
     public VehicleService(SimpMessagingTemplate template) {
         this.template = template;
@@ -53,7 +56,14 @@ public class VehicleService {
         Vehicle savedVehicle = vehicleRepository.save(vehicle);
         VehicleUpdateMessage message = new VehicleUpdateMessage("create",vehicle.getId(), convertToDTO(savedVehicle));
         template.convertAndSend("/topic/vehicles", message);
+        auditLogService.logAction("Create", vehicle.getId(), vehicle.getName(), vehicle.getUser().getId(),vehicle.getUser().getUsername(),"Vehicle created");
         return convertToDTO(savedVehicle);
+    }
+
+    private boolean isAdmin() {
+        User user = (User) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        return user.getAuthorities().stream()
+                .anyMatch(authority -> authority.getAuthority().equals("ROLE_ADMIN"));
     }
 
     public void deleteVehicle(Long id, Long userId) {
@@ -63,10 +73,11 @@ public class VehicleService {
             Vehicle vehicle = vehicleOptional.get();
             Long ownerId = vehicle.getUser().getId();
 
-            if (Objects.equals(ownerId, userId)) {
+            if (Objects.equals(ownerId, userId) || isAdmin()) {
                 vehicleRepository.delete(vehicle);
                 VehicleUpdateMessage message = new VehicleUpdateMessage("delete",id, null);
                 template.convertAndSend("/topic/vehicles", message);
+                auditLogService.logAction("Delete", vehicle.getId(), vehicle.getName(), vehicle.getUser().getId(),vehicle.getUser().getUsername(),"Vehicle deleted");
             } else {
                 throw new ResourceNotFoundException("You are not owner of this vehicle");
             }
@@ -92,6 +103,7 @@ public class VehicleService {
             convertToDTO(updatedVehicle);
             VehicleUpdateMessage message = new VehicleUpdateMessage("update",updatedVehicle.getId(), convertToDTO(updatedVehicle));
             template.convertAndSend("/topic/vehicles", message);
+            auditLogService.logAction("Update", vehicle.getId(), vehicle.getName(), vehicle.getUser().getId(),vehicle.getUser().getUsername(),"Vehicle updated");
         } else{
             throw new ResourceNotFoundException("Vehicle not found");
         }
@@ -104,7 +116,7 @@ public class VehicleService {
     }
 
     // Вспомогательные методы для конвертации
-    private VehicleDTO convertToDTO(Vehicle vehicle) {
+    public VehicleDTO convertToDTO(Vehicle vehicle) {
         if (vehicle == null) {
             return null;
         }
@@ -227,10 +239,10 @@ public class VehicleService {
         return vehicleRepository.countByFuelConsumptionLessThan(value);
     }
 
-    public List<VehicleDTO> searchVehiclesByNameSubstring(String substring) {
-        return vehicleRepository.findByNameContainingIgnoreCase(substring).stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<VehicleDTO> searchVehiclesByNameSubstring(String nameSubstring, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size); // Создаем объект пагинации
+        Page<Vehicle> vehiclePage = vehicleRepository.findByNameContaining(nameSubstring, pageable);
+        return vehiclePage.map(this::convertToDTO);
     }
     public List<VehicleDTO> getVehiclesByType(Long vehicleTypeId) {
         if (!vehicleTypeRepository.existsById(vehicleTypeId)) {

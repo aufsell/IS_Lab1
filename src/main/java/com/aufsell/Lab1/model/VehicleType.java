@@ -15,4 +15,8 @@ public class VehicleType {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    public VehicleType(String plane) {
+        this.name = plane;
+    }
 }

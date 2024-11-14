@@ -11,23 +11,28 @@ import java.util.Date;
 
 @Data
 public class VehicleDTO {
-    @NotNull
     private Long vehicleId;
-    @NotNull
+    @NotNull(message = "name not be null")
     private String name;
     private CoordinatesDTO coordinates;
     private Date creationDate;
     private VehicleTypeDTO vehicleType;
+    @NotNull(message = "enginePower not be null")
     @Positive
     private Long enginePower;
+    @NotNull(message = "numberOfWheels not be null")
     @Positive
     private Long numberOfWheels;
+    @NotNull(message = "capacity not be null")
     @Positive
     private Integer capacity;
+    @NotNull(message = "distanceTravelled not be null")
     @Positive
     private Float distanceTravelled;
+    @NotNull(message = "fuelConsumption not be null")
     @Positive
     private Double fuelConsumption;
+    @NotNull(message = "fuelType not be null")
     private FuelTypeDTO fuelType;
     @Positive
     private Long userID;

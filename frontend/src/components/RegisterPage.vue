@@ -70,15 +70,16 @@ export default {
                     username: this.username,
                     password: this.password,
                 });
-
-                // Проверяем успешность регистрации
-                if (response.status === 200) {
+               
+                
+                if (response.status === 201) {
                     this.$router.push('/login'); // Перенаправление на страницу логина
                 }
             } catch (error) {
+                console.log(error)  
                 // Обработка ошибки ответа сервера
                 if (error.response) {
-                    this.errorMessage = error.response.data.message || 'Registration failed! Please try again.'; // Отображаем сообщение с ошибкой
+                    this.errorMessage = error.response.data || 'Registration failed! Please try again.'; // Отображаем сообщение с ошибкой
                 } else {
                     this.errorMessage = 'Registration failed! Please check your network connection.';
                 }

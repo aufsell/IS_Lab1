@@ -1,49 +1,18 @@
 <template>
     <div class="vehicle-management container mt-5">
-      <h1>Vehicle Management</h1>
-  
-      <!-- 1. Группировка по enginePower -->
-      <section class="group-by-engine-power">
-  <h2>Vehicles Grouped by Engine Power</h2>
-  <div v-if="groupedByEnginePower">
-    <div v-for="(vehicles, enginePower) in groupedByEnginePower" :key="enginePower" class="engine-group">
-      <h3>Engine Power: {{ enginePower }}</h3>
-      <button @click="toggleVisibility(enginePower)" class="btn btn-primary">
-        {{ isVisible(enginePower) ? 'Hide' : 'Show' }} Vehicles
-      </button>
-      <table v-if="isVisible(enginePower)" class="table mt-4">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Coordinates</th>
-            <th>Creation Date</th>
-            <th>Engine Power</th>
-            <th>Number of Wheels</th>
-            <th>Capacity</th>
-            <th>Distance Travelled</th>
-            <th>Fuel Consumption</th>
-            <th>Vehicle Type</th>
-            <th>Fuel Type</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="vehicle in vehicles" :key="vehicle.id">
-            <td>{{ vehicle.name }}</td>
-            <td>{{ vehicle.coordinates.x }};{{ vehicle.coordinates.y }}</td>
-            <td>{{ vehicle.creationDate }}</td>
-            <td>{{ vehicle.enginePower }}</td>
-            <td>{{ vehicle.numberOfWheels }}</td>
-            <td>{{ vehicle.capacity }}</td>
-            <td>{{ vehicle.distanceTravelled }}</td>
-            <td>{{ vehicle.fuelConsumption }}</td>
-            <td>{{ vehicle.vehicleType.name }}</td>
-            <td>{{ vehicle.fuelType.name }}</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="header">
+      <h1>Current User: {{ currentUsername }}</h1>
+      <router-link to="/vehicles" class="btn btn-primary ms-3">Home</router-link>
     </div>
-  </div>
-</section>
+      <!-- 1. Группировка по enginePower -->
+      <section class="group-by-engine-power mt-4">
+      <h2>Vehicles Grouped by Engine Power</h2>
+      <ul v-if="groupedByEnginePower" class="list-group mt-3">
+        <li v-for="(vehicles, enginePower) in groupedByEnginePower" :key="enginePower" class="list-group-item">
+          Engine Power: {{ enginePower }} — {{ vehicles.length }} vehicles
+        </li>
+      </ul>
+    </section>
   
       <!-- 2. Подсчет объектов с fuelConsumption меньше заданного значения -->
       <section class="count-by-fuel-consumption mt-4">
@@ -64,7 +33,7 @@
           <input v-model="searchName" placeholder="Enter name substring" class="form-control" />
           <button @click="searchVehiclesByName" class="btn btn-primary">Search</button>
         </div>
-        <table v-if="searchResults.length > 0" class="table mt-4">
+        <table v-if="searchResults && searchResults.length > 0" class="table mt-4">
           <thead>
             <tr>
               <th>Name</th>
@@ -94,61 +63,63 @@
             </tr>
           </tbody>
         </table>
-        <div class="pagination d-flex justify-content-between mt-3">
-          <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)" class="btn btn-secondary">Prev</button>
-          <span>Page {{ currentPage }}</span>
-          <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)" class="btn btn-secondary">Next</button>
-        </div>
+        <div class="pagination d-flex justify-content-between mt-3" v-if="totalPages > 1">
+  <button :disabled="currentPage === 1" @click="changePage(currentPage - 1)" class="btn btn-secondary">Prev</button>
+  <span>Page {{ currentPage }} of {{ totalPages }}</span>
+  <button :disabled="currentPage === totalPages" @click="changePage(currentPage + 1)" class="btn btn-secondary">Next</button>
+</div>
       </section>
   
       <!-- 4. Поиск транспортных средств по типу -->
       <section class="search-by-type mt-4">
-        <h2>Search Vehicles by Type</h2>
-        <div class="input-group">
-          <select v-model="selectedVehicleType" class="form-select">
-            <option v-for="type in vehicleTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
-          </select>
-          <button @click="searchVehiclesByType" class="btn btn-primary">Search</button>
-        </div>
-        <table v-if="vehicleTypeResults.length > 0" class="table mt-4">
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Coordinates</th>
-              <th>Creation Date</th>
-              <th>Engine Power</th>
-              <th>Number of Wheels</th>
-              <th>Capacity</th>
-              <th>Distance Travelled</th>
-              <th>Fuel Consumption</th>
-              <th>Vehicle Type</th>
-              <th>Fuel Type</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="vehicle in vehicleTypeResults" :key="vehicle.id">
-              <td>{{ vehicle.name }}</td>
-              <td>{{ vehicle.coordinates.x }};{{ vehicle.coordinates.y }}</td>
-              <td>{{ vehicle.creationDate }}</td>
-              <td>{{ vehicle.enginePower }}</td>
-              <td>{{ vehicle.numberOfWheels }}</td>
-              <td>{{ vehicle.capacity }}</td>
-              <td>{{ vehicle.distanceTravelled }}</td>
-              <td>{{ vehicle.fuelConsumption }}</td>
-              <td>{{ vehicle.vehicleType.name }}</td>
-              <td>{{ vehicle.fuelType.name }}</td>
-            </tr>
-          </tbody>
-        </table>
-      </section>
+  <h2>Search Vehicles by Type</h2>
+  <div class="input-group">
+    <select v-model="selectedVehicleType" class="form-select">
+      <option v-for="type in vehicleTypes" :key="type.id" :value="type.id">{{ type.name }}</option>
+    </select>
+    <button @click="searchVehiclesByType" class="btn btn-primary">Search</button>
+  </div>
+  
+  <table v-if="vehicleTypeResults.length > 0" class="table mt-4">
+    <thead>
+      <tr>
+        <th>Name</th>
+        <th>Coordinates</th>
+        <th>Creation Date</th>
+        <th>Engine Power</th>
+        <th>Number of Wheels</th>
+        <th>Capacity</th>
+        <th>Distance Travelled</th>
+        <th>Fuel Consumption</th>
+        <th>Vehicle Type</th>
+        <th>Fuel Type</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr v-for="vehicle in vehicleTypeResults" :key="vehicle.id">
+        <td>{{ vehicle.name }}</td>
+        <td>{{ vehicle.coordinates.x }};{{ vehicle.coordinates.y }}</td>
+        <td>{{ vehicle.creationDate }}</td>
+        <td>{{ vehicle.enginePower }}</td>
+        <td>{{ vehicle.numberOfWheels }}</td>
+        <td>{{ vehicle.capacity }}</td>
+        <td>{{ vehicle.distanceTravelled }}</td>
+        <td>{{ vehicle.fuelConsumption }}</td>
+        <td>{{ vehicle.vehicleType.name }}</td>
+        <td>{{ vehicle.fuelType.name }}</td>
+      </tr>
+    </tbody>
+  </table>
+  <h3 v-else-if="isSearchTriggered">Nothing</h3>
+</section>
   
       <!-- 5. Добавить колеса к транспортному средству -->
       <section class="add-wheels mt-4">
         <h2>Add Wheels to Vehicle</h2>
         <div class="input-group">
           <select v-model="vehicleIdForWheels" class="form-select">
-            <option v-for="vehicle in existingVehicles" :key="vehicle.id" :value="vehicle.id">
-              {{ vehicle.name }} ({{ vehicle.numberOfWheels }} wheels)
+            <option v-for="vehicle in existingVehicles" :key="vehicle.id" :value="vehicle.vehicleId">
+              {{ vehicle.name }} (id: {{ vehicle.vehicleId }}) ({{ vehicle.numberOfWheels }} wheels)
             </option>
           </select>
           <input v-model="wheelsToAdd" placeholder="Enter number of wheels" type="number" class="form-control" />
@@ -179,13 +150,16 @@
         wheelsToAdd: 0,
         addWheelsResponse: '',
         existingVehicles: [],
-        visibleGroups: {}
+        visibleGroups: {},
+        currentUsername:null,
+        isSearchTriggered: false,
       };
     },
     created() {
       this.fetchVehicleTypes();
       this.getGroupedByEnginePower();
       this.getExistingVehicles();
+      this.currentUsername=JSON.parse(localStorage.getItem('username'));
     },
     methods: {
     isVisible(enginePower) {
@@ -209,17 +183,29 @@
       },
   
       async getExistingVehicles() {
-        try {
-          const response = await axios.get('http://localhost:7777/api/vehicles', {
-            headers: {
-              'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-            },
-          });
-          this.existingVehicles = response.data;
-        } catch (error) {
-          console.error('Error fetching existing vehicles', error);
-        }
-      },
+  try {
+    let page = 0;
+    const vehicles = [];
+    let totalPages;
+
+    do {
+      const response = await axios.get(`http://localhost:7777/api/vehicles?page=${page}&size=50`, {
+        headers: {
+          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
+        },
+      });
+      
+      vehicles.push(...response.data.content);
+      totalPages = response.data.totalPages;
+      page++;
+    } while (page < totalPages);
+
+    this.existingVehicles = vehicles;
+    console.log('All existing vehicles:', vehicles);
+  } catch (error) {
+    console.error('Error fetching all existing vehicles', error);
+  }
+},
   
       async getGroupedByEnginePower() {
         try {
@@ -233,7 +219,6 @@
           console.error('Error fetching grouped vehicles', error);
         }
       },
-  
       async getVehiclesCountByFuelConsumption() {
         try {
           const response = await axios.get(
@@ -244,31 +229,39 @@
               },
             }
           );
-          this.vehicleCount = response.data.count;
+          this.vehicleCount = response.data;
         } catch (error) {
           console.error('Error fetching vehicle count by fuel consumption', error);
         }
       },
   
       async searchVehiclesByName() {
-        try {
-          const response = await axios.get(
-            `http://localhost:7777/api/vehicles/search?nameSubstring=${this.searchName}`,
-            {
-              headers: {
-                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-              },
-            }
-          );
-          this.searchResults = response.data;
-          this.totalPages = Math.ceil(this.searchResults.length / 10); // Adjust totalPages based on items per page
-        } catch (error) {
-          console.error('Error searching vehicles by name', error);
+  try {
+    const response = await axios.get(
+      `http://localhost:7777/api/vehicles/search`, 
+      {
+        headers: {
+          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
+        },
+        params: {
+          nameSubstring: this.searchName,
+          page: this.currentPage - 1,  // текущая страница для сервера
+          size: 10  // количество объектов на страницу
         }
-      },
+      }
+    );
+    
+    // Настройка данных для пагинации
+    this.searchResults = response.data.content; // Содержимое текущей страницы
+    this.totalPages = response.data.totalPages; // Общее количество страниц
+    
+  } catch (error) {
+    console.error('Error searching vehicles by name', error);
+  }
+},
   
       async searchVehiclesByType() {
-        console.log(this.selectedVehicleType);
+        this.isSearchTriggered = true;
         try {
            const response = await axios.get(
             `http://localhost:7777/api/vehicles/type`,
@@ -289,9 +282,10 @@
       async addWheelsToVehicle() {
         try {
           await axios.patch(
-            `http://localhost:7777/api/vehicles/${this.vehicleIdForWheels}/add-wheels`,
-            { numberOfWheels: this.wheelsToAdd },
-            {
+            `http://localhost:7777/api/vehicles/${this.vehicleIdForWheels}/add-wheels?count=${parseInt(this.wheelsToAdd)}`,
+            console.log(this.wheelsToAdd)
+,
+           {
               headers: {
                 'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
               },
@@ -304,10 +298,15 @@
       },
   
       changePage(page) {
-        this.currentPage = page;
-        this.searchVehiclesByName();
-      }
+  this.currentPage = page;
+  this.searchVehiclesByName();
+}
     }
   };
   </script>
-  
+
+<style>
+.vehicle-management{
+  margin-bottom: 15vh;
+}
+</style>

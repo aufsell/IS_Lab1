@@ -1,42 +1,51 @@
 <template>
-  <div>
-    <h1>Vehicle Page</h1>
+  <div class="container">
+    <div class="header">
+      <h1>Current User: {{ currentUsername }}</h1>
+      <router-link v-if="isAdmin" to="/admin" class="btn btn-primary ms-3">Admin Panel</router-link>
+      <router-link to="/manage-vehicles" class="btn btn-primary ms-3">Manage Vehicles</router-link>
+      <router-link to="/audit-logs" class="btn btn-primary ms-3">History</router-link>
+      <NewVehicleForm @vehicle-added="fetchVehicles"/>
+      <button @click="logout" class="btn btn-danger">Logout</button>
+    </div>
 
-    <button @click="logout" class="btn btn-danger">Logout</button>
+    <div class="filter-container">
+      <input type="text" v-model="filterText" placeholder="Filter vehicles..." class="form-control mb-4 w-25" />
+    </div>
 
-    <router-link v-if="isAdmin" to="/admin" class="btn btn-primary ms-3">Admin Panel</router-link>
-
-    <router-link to="/new-vehicle" class="btn btn-success ms-3">Add New Vehicle</router-link>
-    <router-link to="/manage-vehicles" class="btn btn-primary ms-3">Manage Vehicles</router-link>
     <table class="table mt-4">
       <thead>
         <tr>
           <th>Name</th>
           <th>Coordinates</th>
           <th>Creation Date</th>
-          <th>Engine Power</th>
-          <th>Number of Wheels</th>
-          <th>Capacity</th>
-          <th>Distance Travelled</th>
-          <th>Fuel Consumption</th>
+          <th>Engine Power<br><button @click="toggleSort('enginePower')" class="sort-btn">{{ getSortSymbol('enginePower') }}</button></th>
+          <th>Number of Wheels <br><button @click="toggleSort('numberOfWheels')" class="sort-btn">{{ getSortSymbol('numberOfWheels') }}</button></th>
+          <th>Capacity <br><br><button @click="toggleSort('capacity')" class="sort-btn">{{ getSortSymbol('capacity') }}</button></th>
+          <th>Distance Travelled <br><button @click="toggleSort('distanceTravelled')" class="sort-btn">{{ getSortSymbol('distanceTravelled') }}</button></th>
+          <th>Fuel Consumption <br><button @click="toggleSort('fuelConsumption')" class="sort-btn">{{ getSortSymbol('fuelConsumption') }}</button></th>
           <th>Fuel Type</th>
+          <th>Vehicle Type</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr v-for="vehicle in paginatedVehicles" :key="vehicle.vehicleId">
+        <tr v-for="vehicle in filteredSortedVehicles" :key="vehicle?.vehicleId">
           <td>{{ vehicle.name }}</td>
-          <td>X : {{vehicle.coordinates.x }}<br>Y : {{ vehicle.coordinates.y }}</td>
-          <td>{{ vehicle.creationDate }}</td>
+          <td>X: {{ vehicle.coordinates?.x }}<br>Y: {{ vehicle.coordinates?.y }}</td>
+          <td>{{ formatDate(vehicle.creationDate) }}</td>
           <td>{{ vehicle.enginePower }}</td>
           <td>{{ vehicle.numberOfWheels }}</td>
           <td>{{ vehicle.capacity }}</td>
           <td>{{ vehicle.distanceTravelled }}</td>
           <td>{{ vehicle.fuelConsumption }}</td>
-          <td>{{ vehicle.fuelType.name }}</td>
+          <td>{{ vehicle.fuelType?.name }}</td>
+          <td>{{ vehicle.vehicleType?.name }}</td>
           <td>
-            <button v-if="vehicle.userID == currentUserId" class="btn btn-warning" @click="editVehicle(vehicle.vehicleId)">Edit</button>
-            <button v-if="vehicle.userID == currentUserId" class="btn btn-danger" @click="deleteVehicle(vehicle.vehicleId)">Delete</button>
+            <div class="td_buttons">
+              <button v-if="vehicle.userID == currentUserId" class="btn btn-outline-secondary" @click="editVehicle(vehicle.vehicleId)"><i class="bi bi-pencil-square"></i></button>
+              <button v-if="vehicle.userID == currentUserId || isAdmin" class="btn btn btn-outline-dark" @click="deleteVehicle(vehicle.vehicleId)"><i class="bi bi-trash"></i></button>
+            </div>
           </td>
         </tr>
       </tbody>
@@ -62,25 +71,81 @@
 import axios from 'axios';
 import SockJS from 'sockjs-client';
 import { Client } from '@stomp/stompjs';
+import { format } from 'date-fns';
+
+import NewVehicleForm from './NewVehicleForm.vue';
 
 export default {
+  components: {
+    NewVehicleForm
+  },
   data() {
     return {
       vehicles: [],
       isAdmin: false,
       currentUserId: null,
+      currentUsername: null,
       currentPage: 1,
       itemsPerPage: 8,
+      totalItems: 0, // Add this property to track the total number of items
+      filterText: '',
+      sortColumn: '',
+      sortOrder: 'asc', // or 'desc'
       stompClient: null,
     };
   },
   computed: {
-    paginatedVehicles() {
-      const start = (this.currentPage - 1) * this.itemsPerPage;
-      return this.vehicles.slice(start, start + this.itemsPerPage);
+    filteredSortedVehicles() {
+      const filterText = this.filterText.toLowerCase();
+      const excludedFields = [
+        'enginePower', 'numberOfWheels', 'capacity', 'distanceTravelled', 'fuelConsumption', 'coordinates', 'creationDate'
+      ];
+
+      const filtered = this.vehicles.filter(vehicle =>
+        Object.keys(vehicle).some(key => {
+          if (excludedFields.includes(key)) {
+            return false;
+          }
+
+          const value = vehicle[key];
+          const stringValue = value !== null && value !== undefined ? value.toString().toLowerCase() : "";
+          const regex = new RegExp(filterText, 'i');
+
+          if (!isNaN(value)) {
+            return regex.test(value.toString());
+          }
+
+          if (key === 'fuelType' || key === 'vehicleType') {
+            return regex.test(value.name ? value.name.toLowerCase() : '');
+          }
+
+          return regex.test(stringValue);
+        })
+      );
+
+      if (this.sortColumn) {
+        const sortOrder = this.sortOrder === 'asc' ? 1 : -1;
+        filtered.sort((a, b) => {
+          const valueA = a[this.sortColumn];
+          const valueB = b[this.sortColumn];
+
+          if (!isNaN(valueA) && !isNaN(valueB)) {
+            return (valueA - valueB) * sortOrder;
+          } else {
+            const stringA = valueA !== null && valueA !== undefined ? valueA.toString().toLowerCase() : "";
+            const stringB = valueB !== null && valueB !== undefined ? valueB.toString().toLowerCase() : "";
+            if (stringA < stringB) return -sortOrder;
+            if (stringA > stringB) return sortOrder;
+            return 0;
+          }
+        });
+      }
+
+      return filtered;
     },
+    
     totalPages() {
-      return Math.ceil(this.vehicles.length / this.itemsPerPage);
+      return Math.ceil(this.totalItems / this.itemsPerPage);
     },
   },
   created() {
@@ -89,12 +154,34 @@ export default {
     this.connectToWebSocket();
   },
   methods: {
+    formatDate(date) {
+      const parsedDate = new Date(date);
+      if (isNaN(parsedDate)) {
+        return 'Invalid Date';
+      }
+      return format(parsedDate, 'dd.MM.yyyy HH:mm:ss');
+    },
+    toggleSort(column) {
+      if (this.sortColumn === column) {
+        this.sortOrder = this.sortOrder === 'asc' ? 'desc' : 'asc';
+      } else {
+        this.sortColumn = column;
+        this.sortOrder = 'asc';
+      }
+    },
+    getSortSymbol(column) {
+      if (this.sortColumn === column) {
+        return this.sortOrder === 'asc' ? '↑' : '↓';
+      }
+      return '⇅';
+    },
     checkAdminRole() {
       const role = JSON.parse(localStorage.getItem('role'));
       if (role === 'ROLE_ADMIN') {
         this.isAdmin = true;
       }
       this.currentUserId = JSON.parse(localStorage.getItem('userId'));
+      this.currentUsername = JSON.parse(localStorage.getItem('username'));
     },
     logout() {
       localStorage.removeItem('token');
@@ -103,41 +190,46 @@ export default {
       this.$router.push('/');
     },
     async fetchVehicles() {
-      try {
-        const response = await axios.get('http://localhost:7777/api/vehicles', {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-          },
-        });
-        this.vehicles = response.data;
-      } catch (error) {
-        console.error('Error fetching vehicles', error);
-      }
+  try {
+    const response = await axios.get('http://localhost:7777/api/vehicles', {
+      params: {
+        page: this.currentPage - 1,
+        size: this.itemsPerPage,
+        filter: this.filterText,
+        sort: `${this.sortColumn},${this.sortOrder}`
+      },
+      headers: {
+        Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
+      },
+    });
+
+    this.vehicles = response.data.content; // Обновляем список
+    this.totalItems = response.data.totalElements;
+  } catch (error) {
+    console.error('Error fetching vehicles:', error);
+  }
+},
+    changePage(page) {
+      this.currentPage = page;
+      this.fetchVehicles();
     },
-    editVehicle(vehicleId) {
-      this.$router.push({ name: 'edit-vehicle', params: { vehicleId } });
+    editVehicle(id) {
+      this.$router.push(`/edit-vehicle/${id}`);
     },
-    async deleteVehicle(vehicleId) {
+    async deleteVehicle(id) {
       const userId = Number(JSON.parse(localStorage.getItem('userId')));
-      if (isNaN(userId)) {
-        console.error('Invalid user ID');
-        return;
-      }
       try {
-        await axios.delete(`http://localhost:7777/api/vehicles/${vehicleId}`, {
+        await axios.delete(`http://localhost:7777/api/vehicles/${id}`, {
           headers: {
             Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
           },
-          data: { userId },
+            data: { userId},
+          
         });
         this.fetchVehicles();
       } catch (error) {
-        console.error('Error deleting vehicle', error);
+        console.error('Error deleting vehicle:', error);
       }
-    },
-    changePage(page) {
-      if (page < 1 || page > this.totalPages) return;
-      this.currentPage = page;
     },
     connectToWebSocket() {
       const socket = new SockJS('http://localhost:7777/ws');
@@ -154,36 +246,46 @@ export default {
         },
       });
       this.stompClient.activate();
-      
     },
     handleVehicleUpdate(update) {
-      switch (update.activity) {
-        case 'delete': {
-          this.vehicles = this.vehicles.filter(v => v.vehicleId !== update.vehicleId);
-          break;
-        }
-        case 'update': {
-          const index = this.vehicles.findIndex(v => v.vehicleId === update.vehicleId);
-          if (index !== -1) {
-            this.vehicles.splice(index, 1, update.vehicle);
-          }
-          break;
-        }
-        case 'add': {
-          this.vehicles.push(update.vehicle);
-          break;
-        }
-      }
+  console.log(update);
+  if (update.vehicle) {
+    const index = this.vehicles.findIndex((vehicle) => vehicle.vehicleId === update.vehicleId);
+    
+    if (index !== -1) {
+      console.log('Updating vehicle');
+      this.vehicles.splice(index, 1, update.vehicle);
+    } else {
+      console.log('Adding new vehicle');
+      this.vehicles.push(update.vehicle);
     }
+  } else {
+    console.log('Vehicle to update is null, removing from array');
+    this.vehicles = this.vehicles.filter((vehicle) => vehicle.vehicleId !== update.vehicleId);
+  }
+}
   },
 };
 </script>
 
-<style scoped>
-.table th, .table td {
-  vertical-align: middle;
+<style>
+.header{
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
-.pagination {
-  justify-content: center;
+
+.filter-container{
+  margin-top: 5vh;
+}
+
+.td_buttons{
+  display: flex;
+  justify-content: space-around;
+  gap: 10px
+}
+thead th {
+  text-align: top;
+  vertical-align: top;
 }
 </style>
