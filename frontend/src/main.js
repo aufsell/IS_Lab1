@@ -1,7 +1,7 @@
 import { createApp } from 'vue'
 import App from './App.vue'
 
-import { createMemoryHistory, createRouter } from 'vue-router'
+import { createRouter, createWebHistory } from 'vue-router'
 import 'bootstrap/dist/css/bootstrap.min.css'
 import 'bootstrap/dist/js/bootstrap.bundle.min.js'
 import AdminPage from './components/AdminPage.vue'
@@ -23,28 +23,11 @@ const routes = [
   { path: '/edit-vehicle/:vehicleId', component: NewVehicleForm , props: true, name: 'edit-vehicle'},
   { path: '/manage-vehicles', component: ManageVehicle},
   {path: '/audit-logs', component: AuditLogTable},
-  { path: '/', redirect: '/login' }
 ]
 
 const router = createRouter({
-  history: createMemoryHistory(),
+  history: createWebHistory(),
   routes
 })
-
-router.beforeEach((to, from, next) => {
-    const isAuthenticated = !!localStorage.getItem('token');
-    const role = localStorage.getItem('role');
-
-    if (to.meta.requiresAuth && !isAuthenticated) {
-        next("/login");
-    } else if (to.meta.requiresAdmin && role !== 'ROLE_ADMIN') {
-        console.log(localStorage.getItem('role'));
-
-            next("/vehicles");
-
-    } else {
-        next();
-    }
-});
 
 createApp(App).use(router).mount('#app')
