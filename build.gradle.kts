@@ -28,6 +28,8 @@ dependencies {
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 	compileOnly("org.projectlombok:lombok")
 	annotationProcessor("org.projectlombok:lombok")
+	implementation("redis.clients:jedis")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation ("jakarta.validation:jakarta.validation-api:3.0.2")
 	implementation ("org.hibernate.validator:hibernate-validator:8.0.0.Final")
 	implementation ("org.glassfish:jakarta.el:4.0.2")

@@ -203,8 +203,9 @@ export default {
       },
     });
 
-    this.vehicles = response.data.content; // Обновляем список
-    this.totalItems = response.data.totalElements;
+    this.vehicles = response.data.content;
+    this.totalItems = response.data.page.totalElements;
+    
   } catch (error) {
     console.error('Error fetching vehicles:', error);
   }

@@ -51,14 +51,8 @@ public class VehicleController {
             @RequestParam(defaultValue = "asc") String sortOrder,
             @RequestParam(defaultValue = "name") String sortColumn
     ) {
-        Sort sort = sortOrder.equalsIgnoreCase("asc")
-                ? Sort.by(Sort.Order.asc(sortColumn))
-                : Sort.by(Sort.Order.desc(sortColumn));
-
-        Pageable pageable = PageRequest.of(page, size, sort);
-        Page<Vehicle> vehiclePage = vehicleRepository.findAll(pageable);
-        Page<VehicleDTO> vehicleDTOPage = vehiclePage.map(vehicle -> vehicleService.convertToDTO(vehicle));
-        return ResponseEntity.status(HttpStatus.OK).body(vehicleDTOPage);
+        Page<VehicleDTO> pageContent = vehicleService.getAllVehicles(page, size, sortOrder, sortColumn);
+        return ResponseEntity.status(HttpStatus.OK).body(pageContent);
     }
 
     @PostMapping

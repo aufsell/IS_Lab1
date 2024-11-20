@@ -5,21 +5,21 @@ import com.aufsell.Lab1.exception.ResourceNotFoundException;
 import com.aufsell.Lab1.model.*;
 import com.aufsell.Lab1.repository.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.*;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.time.Duration;
+import java.util.*;
 import java.util.stream.Collectors;
-
+//TODO доделать передачу аргументов о странице при изменении удалении объекта для удаление не всего кеша
 @Service
 public class VehicleService {
+
+    private static final String VEHICLE_PAGE_CONTENT = "vehicle_content_page_";
     @Autowired
     private VehicleRepository vehicleRepository;
     @Autowired
@@ -35,14 +35,38 @@ public class VehicleService {
     @Autowired
     private AuditLogService auditLogService;
 
+    @Autowired
+    private RedisTemplate<String, PageContent<VehicleDTO>> pageContentRedisTemplate;
+    @Autowired
+    private RedisTemplate<String, VehicleDTO> vehicleRedisTemplate;
     public VehicleService(SimpMessagingTemplate template) {
         this.template = template;
     }
 
-    public List<VehicleDTO> getAllVehicles() {
-        return vehicleRepository.findAll().stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    public Page<VehicleDTO> getAllVehicles(int page, int size, String sortOrder, String sortColumn) {
+        String cacheKey = VEHICLE_PAGE_CONTENT + page;
+        PageContent<VehicleDTO> cachedContent = pageContentRedisTemplate.opsForValue().get(cacheKey);
+        List<VehicleDTO> vehicleDTOList;
+        if(cachedContent != null) {
+            vehicleDTOList = cachedContent.getContent();
+        }
+        else {
+            Sort sort = sortOrder.equalsIgnoreCase("asc")
+                    ? Sort.by(Sort.Order.asc(sortColumn))
+                    : Sort.by(Sort.Order.desc(sortColumn));
+
+            Pageable pageable = PageRequest.of(page, size, sort);
+            Page<Vehicle> vehiclePage = vehicleRepository.findAll(pageable);
+
+            vehicleDTOList = vehiclePage.getContent().stream()
+                    .map(this::convertToDTO)
+                    .collect(Collectors.toList());
+
+            PageContent<VehicleDTO> pageContent = new PageContent<>(vehicleDTOList);
+            pageContentRedisTemplate.opsForValue().set(cacheKey, pageContent, Duration.ofMinutes(30));
+        }
+
+        return new PageImpl<>(vehicleDTOList, PageRequest.of(page, size), vehicleRepository.count());
     }
 
     public List<CoordinatesDTO> getAllCoordinates() {
@@ -81,12 +105,14 @@ public class VehicleService {
             } else {
                 throw new ResourceNotFoundException("You are not owner of this vehicle");
             }
+            clearCache();
         } else {
             throw new ResourceNotFoundException("Vehicle not found");
         }
     }
 
     public void updateVehicle(Long id, VehicleDTO vehicleDTO) {
+
         Optional<Vehicle> optionalVehicle = vehicleRepository.findById(id);
         if (optionalVehicle.isPresent()) {
             Vehicle vehicle = optionalVehicle.get();
@@ -104,15 +130,26 @@ public class VehicleService {
             VehicleUpdateMessage message = new VehicleUpdateMessage("update",updatedVehicle.getId(), convertToDTO(updatedVehicle));
             template.convertAndSend("/topic/vehicles", message);
             auditLogService.logAction("Update", vehicle.getId(), vehicle.getName(), vehicle.getUser().getId(),vehicle.getUser().getUsername(),"Vehicle updated");
+            clearCache();
         } else{
             throw new ResourceNotFoundException("Vehicle not found");
         }
+
     }
 
     public VehicleDTO getVehicleById(Long id) {
-        return vehicleRepository.findById(id)
+        String cacheKey = "VEHICLE_ID_" + id;
+        VehicleDTO cachedVehicle = vehicleRedisTemplate.opsForValue().get(cacheKey);
+        if (cachedVehicle != null) {
+            return cachedVehicle;
+        }
+
+        VehicleDTO vehicleDTO = vehicleRepository.findById(id)
                 .map(this::convertToDTO)
-                .orElseThrow(() -> new ResourceNotFoundException("Vehicle ID not found")); // Возвращаем null, если объект не найден
+                .orElseThrow(() -> new ResourceNotFoundException("Vehicle ID not found"));
+        vehicleRedisTemplate.opsForValue().set(cacheKey, vehicleDTO);
+
+        return vehicleDTO;
     }
 
     // Вспомогательные методы для конвертации
@@ -157,6 +194,13 @@ public class VehicleService {
         vehicle.setFuelType(convertFuelTypeDTOToFuelType(vehicleDTO.getFuelType()));
         vehicle.setUser(userRepository.findById(vehicleDTO.getUserID()).orElseThrow(() -> new ResourceNotFoundException("User with given ID not found")));
         return vehicle;
+    }
+
+    public void clearCache() {
+        Set<String> keys = pageContentRedisTemplate.keys("*");
+        if (keys != null) {
+            pageContentRedisTemplate.delete(keys);
+        }
     }
 
     // Вспомогательные методы для конвертации Coordinates
@@ -255,6 +299,7 @@ public class VehicleService {
     }
 
     public VehicleDTO addWheels(Long vehicleId, int count) {
+        clearCache();
         Vehicle vehicle = vehicleRepository.findById(vehicleId)
                 .orElseThrow(() -> new ResourceNotFoundException("Vehicle with given ID not found"));
 
