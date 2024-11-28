@@ -81,9 +81,7 @@
               page: this.currentPage,
               size: this.itemsPerPage,
             },
-            headers: {
-              Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-            }
+            withCredentials: true,
           });
           this.auditLogs = response.data;
           console.log('История изменений:', this.auditLogs);

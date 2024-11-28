@@ -37,7 +37,6 @@
 
 <script>
 import axios from 'axios';
-import {jwtDecode} from 'jwt-decode';
 
 export default {
     data() {
@@ -62,26 +61,31 @@ export default {
             }
 
             try {
+                // Отправка POST запроса для авторизации пользователя
                 const response = await axios.post('http://localhost:7777/auth/sign-in', {
                     username: this.username,
                     password: this.password,
+                }, {
+                    withCredentials: true, // Обязательно для отправки и получения cookies
                 });
+                
+                // Данные пользователя, которые сервер отправляет в теле ответа
 
-                const decodedToken = jwtDecode(response.data.token);
-                const userRole = decodedToken.role;
-                const username = decodedToken.sub;
-                const userId = decodedToken.id;
-                localStorage.setItem('role', JSON.stringify(userRole));
-                localStorage.setItem('username', JSON.stringify(username));
-                localStorage.setItem('token', JSON.stringify(response.data.token));
-                localStorage.setItem('userId', JSON.stringify(userId));
+                
+                console.log(response.data);
+                // Сохраняем данные пользователя в localStorage
+                localStorage.setItem('userId', JSON.stringify(response.data.userId));
+            localStorage.setItem('username', JSON.stringify(response.data.username));
+            localStorage.setItem('role', JSON.stringify(response.data.role));
+            console.log("gsaer", localStorage.getItem('role'));
+
+                // Перенаправляем пользователя на страницу транспортных средств
                 this.$router.push('/vehicles');
             } catch (error) {
                 if (error.response) {
                     this.errorMessage = error.response.data.message || 'Incorrect username or password, please try again';
                 } else {
                     this.errorMessage = 'Login failed! Please check your network connection.';
-
                 }
             }
         },

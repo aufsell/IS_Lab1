@@ -172,9 +172,7 @@
       async fetchVehicleTypes() {
         try {
           const response = await axios.get('http://localhost:7777/api/vehicles/vehicleTypes', {
-            headers: {
-              'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-            },
+            withCredentials: true,
           });
           this.vehicleTypes = response.data;
         } catch (error) {
@@ -190,9 +188,7 @@
 
     do {
       const response = await axios.get(`http://localhost:7777/api/vehicles?page=${page}&size=50`, {
-        headers: {
-          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-        },
+        withCredentials: true,
       });
       
       vehicles.push(...response.data.content);
@@ -210,9 +206,7 @@
       async getGroupedByEnginePower() {
         try {
           const response = await axios.get('http://localhost:7777/api/vehicles/group-by-engine-power', {
-            headers: {
-              'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-            },
+            withCredentials: true,
           });
           this.groupedByEnginePower = response.data;
         } catch (error) {
@@ -224,9 +218,7 @@
           const response = await axios.get(
             `http://localhost:7777/api/vehicles/count-by-fuel-consumption?value=${this.fuelConsumptionValue}`,
             {
-              headers: {
-                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-              },
+              withCredentials: true,
             }
           );
           this.vehicleCount = response.data;
@@ -240,9 +232,7 @@
     const response = await axios.get(
       `http://localhost:7777/api/vehicles/search`, 
       {
-        headers: {
-          'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-        },
+        withCredentials: true,
         params: {
           nameSubstring: this.searchName,
           page: this.currentPage - 1,  // текущая страница для сервера
@@ -266,9 +256,7 @@
            const response = await axios.get(
             `http://localhost:7777/api/vehicles/type`,
             {
-              headers: {
-                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-              },
+              withCredentials: true,
               params: { vehicleType: this.selectedVehicleType },
             }
           );
@@ -286,9 +274,7 @@
             console.log(this.wheelsToAdd)
 ,
            {
-              headers: {
-                'Authorization': `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-              },
+            withCredentials: true,
             }
           );
           this.addWheelsResponse = `Added ${this.wheelsToAdd} wheels to vehicle ${this.vehicleIdForWheels}`;

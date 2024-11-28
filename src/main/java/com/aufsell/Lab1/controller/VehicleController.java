@@ -1,27 +1,18 @@
 package com.aufsell.Lab1.controller;
 
-import com.aufsell.Lab1.dto.FuelTypeDTO;
 import com.aufsell.Lab1.dto.VehicleDTO;
 import com.aufsell.Lab1.dto.VehicleDeleteRequest;
-import com.aufsell.Lab1.dto.VehicleTypeDTO;
-import com.aufsell.Lab1.exception.ResourceNotFoundException;
 import com.aufsell.Lab1.model.AuditLog;
 import com.aufsell.Lab1.model.FuelType;
-import com.aufsell.Lab1.model.Vehicle;
 import com.aufsell.Lab1.model.VehicleType;
 import com.aufsell.Lab1.repository.FuelTypeRepository;
-import com.aufsell.Lab1.repository.VehicleRepository;
 import com.aufsell.Lab1.repository.VehicleTypeRepository;
 import com.aufsell.Lab1.service.AuditLogService;
 import com.aufsell.Lab1.service.VehicleService;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -33,16 +24,26 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/vehicles")
 public class VehicleController {
-    @Autowired
-    private VehicleService vehicleService;
-    @Autowired
-    private VehicleTypeRepository vehicleTypeRepository;
-    @Autowired
-    private FuelTypeRepository fuelTypeRepository;
-    @Autowired
-    private AuditLogService auditLogService;
-    @Autowired
-    private VehicleRepository vehicleRepository;
+
+    private final VehicleService vehicleService;
+
+    private final VehicleTypeRepository vehicleTypeRepository;
+
+    private final FuelTypeRepository fuelTypeRepository;
+
+    private final AuditLogService auditLogService;
+
+    public VehicleController(
+            VehicleService vehicleService,
+            VehicleTypeRepository vehicleTypeRepository,
+            FuelTypeRepository fuelTypeRepository,
+            AuditLogService auditLogService
+            ){
+        this.vehicleService = vehicleService;
+        this.vehicleTypeRepository = vehicleTypeRepository;
+        this.fuelTypeRepository = fuelTypeRepository;
+        this.auditLogService = auditLogService;
+    }
 
     @GetMapping
     public ResponseEntity<Page<VehicleDTO>> getAllVehicles(

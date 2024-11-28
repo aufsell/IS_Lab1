@@ -171,11 +171,9 @@
   
       async fetchVehicleTypes() {
         try {
-          const token = JSON.parse(localStorage.getItem('token'));
+          
           const response = await axios.get('http://localhost:7777/api/vehicles/vehicleTypes', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
           });
           this.vehicleTypes = response.data;
         } catch (error) {
@@ -185,11 +183,9 @@
   
       async fetchFuelTypes() {
         try {
-          const token = JSON.parse(localStorage.getItem('token'));
+          
           const response = await axios.get('http://localhost:7777/api/vehicles/fuelTypes', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
           });
           this.fuelTypes = response.data;
         } catch (error) {
@@ -199,11 +195,9 @@
   
       async loadCoordinatesFromDB() {
         try {
-          const token = JSON.parse(localStorage.getItem('token'));
+          
           const response = await axios.get('http://localhost:7777/api/vehicles/coordinates', {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
           });
           this.existingCoordinates = response.data;
         } catch (error) {
@@ -213,11 +207,9 @@
   
       async loadVehicleData(id) {
         try {
-          const token = JSON.parse(localStorage.getItem('token'));
+          
           const response = await axios.get(`http://localhost:7777/api/vehicles/${id}`, {
-            headers: {
-              Authorization: `Bearer ${token}`,
-            },
+            withCredentials: true,
           });
           const data = response.data;
           this.vehicle = {
@@ -259,15 +251,15 @@
           };
           console.log('Coordinates --------:', this.coordinates);
           
-          const token = JSON.parse(localStorage.getItem('token'));
-          const headers = { Authorization: `Bearer ${token}` };
+          
+          
           if (this.isEditMode && this.vehicleId) {
             payload.vehicleId = this.vehicleId;
             // PUT запрос для обновления существующего объекта
-            await axios.put(`http://localhost:7777/api/vehicles/${this.vehicleId}`, payload, { headers });
+            await axios.put(`http://localhost:7777/api/vehicles/${this.vehicleId}`, payload, { withCredentials: true, });
           } else {
             // POST запрос для создания нового объекта
-            await axios.post('http://localhost:7777/api/vehicles', payload, { headers });
+            await axios.post('http://localhost:7777/api/vehicles', payload, { withCredentials: true, });
           }
           this.$emit('vehicle-updated', this.vehicle);
           this.$router.push('/vehicles');

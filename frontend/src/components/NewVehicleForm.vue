@@ -169,9 +169,9 @@ export default {
     },
     async fetchVehicleTypes() {
       try {
-        const token = JSON.parse(localStorage.getItem('token'));
+
         const response = await axios.get('http://localhost:7777/api/vehicles/vehicleTypes', {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         });
         this.vehicleTypes = response.data;
       } catch (error) {
@@ -180,9 +180,9 @@ export default {
     },
     async fetchFuelTypes() {
       try {
-        const token = JSON.parse(localStorage.getItem('token'));
+
         const response = await axios.get('http://localhost:7777/api/vehicles/fuelTypes', {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         });
         this.fuelTypes = response.data;
       } catch (error) {
@@ -191,9 +191,9 @@ export default {
     },
     async loadCoordinatesFromDB() {
       try {
-        const token = JSON.parse(localStorage.getItem('token'));
+        
         const response = await axios.get('http://localhost:7777/api/vehicles/coordinates', {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         });
         this.existingCoordinates = response.data;
       } catch (error) {
@@ -218,9 +218,9 @@ export default {
     },
     async loadVehicleData(vehicleId) {
       try {
-        const token = JSON.parse(localStorage.getItem('token'));
+        
         const response = await axios.get(`http://localhost:7777/api/vehicles/${vehicleId}`, {
-          headers: { Authorization: `Bearer ${token}` },
+          withCredentials: true,
         });
         this.vehicle = response.data;
         if (this.vehicle.coordinates) {
@@ -233,7 +233,7 @@ export default {
     },
     async submitForm() {
   try {
-    const token = JSON.parse(localStorage.getItem('token'));
+    
 
     const requestData = {
       name: this.vehicle.name,
@@ -251,7 +251,7 @@ export default {
 
     if (this.isEditMode) {
       await axios.put(`http://localhost:7777/api/vehicles/${this.vehicleId}`, requestData, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
     } else {
       const requestData = {
@@ -269,7 +269,7 @@ export default {
       userID: JSON.parse(localStorage.getItem('userId')),
     };
       await axios.post('http://localhost:7777/api/vehicles', requestData, {
-        headers: { Authorization: `Bearer ${token}` },
+        withCredentials: true,
       });
     }
 

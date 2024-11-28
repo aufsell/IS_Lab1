@@ -2,7 +2,6 @@ package com.aufsell.Lab1.service;
 
 import com.aufsell.Lab1.model.AuditLog;
 import com.aufsell.Lab1.repository.AuditLogRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -11,8 +10,11 @@ import org.springframework.stereotype.Service;
 
 @Service
 public class AuditLogService {
-    @Autowired
-    private AuditLogRepository auditLogRepository;
+    private final AuditLogRepository auditLogRepository;
+
+    public AuditLogService(AuditLogRepository auditLogRepository) {
+        this.auditLogRepository = auditLogRepository;
+    }
 
     public void logAction(String actionType, Long objectId, String ObjectName,
                           Long userId, String userName, String details) {

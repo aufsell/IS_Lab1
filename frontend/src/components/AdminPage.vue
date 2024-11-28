@@ -67,9 +67,7 @@ export default {
         async fetchUsers() {
             try {
                 const response = await axios.get('http://localhost:7777/api/admin/users', {
-                    headers: {
-                        Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-                    },
+                    withCredentials: true,
                 });
                 this.users = response.data;
             } catch (error) {
@@ -80,9 +78,7 @@ export default {
         async grantAdmin(userId) {
             try {
                 await axios.put(`http://localhost:7777/api/admin/users/${userId}/grant-admin`, null, {
-                    headers: {
-                        Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-                    },
+                    withCredentials: true,
                 });
                 this.fetchUsers();
             } catch (error) {
@@ -93,9 +89,7 @@ export default {
         async revokeAdmin(userId) {
             try {
                 await axios.put(`http://localhost:7777/api/admin/users/${userId}/revoke-admin`, null, {
-                    headers: {
-                        Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-                    },
+                    withCredentials: true,
                 });
                 this.fetchUsers();
             } catch (error) {

@@ -3,31 +3,36 @@ import com.aufsell.Lab1.model.*;
 import com.aufsell.Lab1.repository.*;
 import com.aufsell.Lab1.service.AuthenticationService;
 import com.aufsell.Lab1.service.UserService;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
 @Component
-// preload into DB
 public class DataLoader implements CommandLineRunner {
 
-    @Autowired
     private final UserService userService;
-    @Autowired
-    private AuthenticationService authenticationService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private FuelTypeRepository fuelTypeRepository;
-    @Autowired
-    private VehicleTypeRepository vehicleTypeRepository;
-    @Autowired
-    private VehicleRepository vehicleRepository;
-    @Autowired
-    private CoordinatesRepository coordinatesRepository;
+    private final AuthenticationService authenticationService;
+    private final UserRepository userRepository;
+    private final FuelTypeRepository fuelTypeRepository;
+    private final VehicleTypeRepository vehicleTypeRepository;
+    private final VehicleRepository vehicleRepository;
+    private final CoordinatesRepository coordinatesRepository;
 
-    public DataLoader(UserService userService) {
+    public DataLoader(
+            UserService userService,
+            AuthenticationService authenticationService,
+            UserRepository userRepository,
+            FuelTypeRepository fuelTypeRepository,
+            VehicleTypeRepository vehicleTypeRepository,
+            VehicleRepository vehicleRepository,
+            CoordinatesRepository coordinatesRepository
+    ) {
         this.userService = userService;
+        this.authenticationService = authenticationService;
+        this.userRepository = userRepository;
+        this.fuelTypeRepository = fuelTypeRepository;
+        this.vehicleTypeRepository = vehicleTypeRepository;
+        this.vehicleRepository = vehicleRepository;
+        this.coordinatesRepository = coordinatesRepository;
     }
 
     @Override

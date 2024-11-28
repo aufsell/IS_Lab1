@@ -1,11 +1,8 @@
 package com.aufsell.Lab1.controller;
 
 import com.aufsell.Lab1.dto.CoordinatesDTO;
-import com.aufsell.Lab1.dto.VehicleDTO;
-import com.aufsell.Lab1.repository.CoordinatesRepository;
 import com.aufsell.Lab1.service.VehicleService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,8 +15,12 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/vehicles/coordinates")
 public class CoordinatesController {
-    @Autowired
-    private VehicleService vehicleService;
+
+    private final VehicleService vehicleService;
+
+    public CoordinatesController(VehicleService vehicleService) {
+        this.vehicleService = vehicleService;
+    }
 
     @GetMapping
     public ResponseEntity<List<CoordinatesDTO>> getAllCoordinates() {

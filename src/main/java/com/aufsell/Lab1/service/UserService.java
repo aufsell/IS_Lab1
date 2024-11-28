@@ -6,9 +6,7 @@ import com.aufsell.Lab1.model.Role;
 import com.aufsell.Lab1.model.User;
 import com.aufsell.Lab1.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -62,21 +60,6 @@ public class UserService {
         return this::getByUsername;
     }
 
-    /**
-     * Получение текущего пользователя
-     *
-     * @return текущий пользователь
-     */
-    public User getCurrentUser() {
-        // Получение имени пользователя из контекста Spring Security
-        var username = SecurityContextHolder.getContext().getAuthentication().getName();
-        return getByUsername(username);
-    }
-
-    public boolean isPasswordTaken(String password) {
-        // Проверка пароля в базе данных
-        return userRepository.existsByPassword(password);
-    }
 
     public void grantAdmin(Long userId) {
         User user = userRepository.findById(userId)
@@ -100,7 +83,7 @@ public class UserService {
     }
 
     // Метод для преобразования User в UserDTO
-    private UserDTO convertToDto(User user) {
+    public UserDTO convertToDto(User user) {
         return new UserDTO(
                 user.getId(),
                 user.getUsername(),
@@ -108,15 +91,4 @@ public class UserService {
                 user.getRegistrationDate()
         );
     }
-
-    // Метод для преобразования UserDTO в User
-    public User convertToEntity(UserDTO userDTO) {
-        User user = new User();
-        user.setId(userDTO.getId());
-        user.setUsername(userDTO.getUsername());
-        user.setRole(userDTO.getRole());
-        user.setRegistrationDate(userDTO.getRegistrationDate());
-        return user;
-    }
-
 }

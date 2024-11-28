@@ -138,7 +138,7 @@ public class VehicleService {
     }
 
     public VehicleDTO getVehicleById(Long id) {
-        String cacheKey = "VEHICLE_ID_" + id;
+        String cacheKey = "vehicle_id_" + id;
         VehicleDTO cachedVehicle = vehicleRedisTemplate.opsForValue().get(cacheKey);
         if (cachedVehicle != null) {
             return cachedVehicle;
@@ -197,7 +197,7 @@ public class VehicleService {
     }
 
     public void clearCache() {
-        Set<String> keys = pageContentRedisTemplate.keys("*");
+        Set<String> keys = pageContentRedisTemplate.keys("ve*");
         if (keys != null) {
             pageContentRedisTemplate.delete(keys);
         }

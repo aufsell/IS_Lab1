@@ -198,9 +198,7 @@ export default {
         filter: this.filterText,
         sort: `${this.sortColumn},${this.sortOrder}`
       },
-      headers: {
-        Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-      },
+      withCredentials: true
     });
 
     this.vehicles = response.data.content;
@@ -221,9 +219,7 @@ export default {
       const userId = Number(JSON.parse(localStorage.getItem('userId')));
       try {
         await axios.delete(`http://localhost:7777/api/vehicles/${id}`, {
-          headers: {
-            Authorization: `Bearer ${JSON.parse(localStorage.getItem('token'))}`,
-          },
+          withCredentials: true,
             data: { userId},
           
         });

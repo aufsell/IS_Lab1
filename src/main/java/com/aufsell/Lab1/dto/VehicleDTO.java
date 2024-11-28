@@ -1,8 +1,5 @@
 package com.aufsell.Lab1.dto;
 
-import com.aufsell.Lab1.model.FuelType;
-import com.aufsell.Lab1.model.User;
-import com.aufsell.Lab1.model.VehicleType;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.Data;
